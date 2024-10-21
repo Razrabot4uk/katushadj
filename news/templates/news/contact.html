@@ -1,0 +1,57 @@
+{% extends 'news/base.html' %}
+
+{% block title %}Контакты{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+                <h1 class="text-center mb-4">КОНТАКТЫ</h1>
+            <div class="card mt-5">
+                <div class="card-body">
+                    <h3 class="card-title">Контактная информация:</h3>
+                    <ul class="list-unstyled">
+                        <!-- <li><strong>Адрес:</strong> ул. Примерная, дом 123, офис 456</li> -->
+                        <li><strong>Телефон:</strong> +7 (123) 456-7890</li>
+                        <li><strong>Email:</strong> info@example.com</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mt-5">
+                <div class="card-body">
+                    <h1 class="card-title text-center mb-4">Свяжитесь с нами</h1>
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="form-group">
+                                {{ field.label_tag }}
+                                {% if field.label != 'Email' %}
+                                    <input type="{{ field.field.widget.input_type }}" class="form-control {% if field.errors %}is-invalid{% endif %}" name="{{ field.name }}" id="{{ field.id_for_label }}" {% if field.value %}value="{{ field.value }}"{% endif %} {% if field.help_text %}aria-describedby="help_{{ field.id_for_label }}"{% endif %}>
+                                {% else %}
+                                    <input class="form-control {% if field.errors %}is-invalid{% endif %}" name="{{ field.name }}" id="{{ field.id_for_label }}" rows="5" {% if field.help_text %}aria-describedby="help_{{ field.id_for_label }}"{% endif %}>{% if field.value %}{{ field.value }}{% endif %}</input>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <small id="help_{{ field.id_for_label }}" class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary btn-block">Отправить</button>
+                    </form>
+                    {% if messages %}
+                        <div class="alert alert-success mt-4" role="alert">
+                            {% for message in messages %}
+                                {{ message }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,511 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Стили для скролл-блоков, изображений и видео */
+    .overflow-auto {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .gallery-item {
+        flex: 0 0 auto;
+        margin-right: 10px;
+    }
+
+    /* Улучшение отображения видео */
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        max-width: 100%;
+        background: #000;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .video-container video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Адаптивные стили для видео и галерей */
+    @media (max-width: 767.98px) {
+        .gallery-item {
+            width: 150px;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .gallery-item {
+            width: 180px;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .gallery-item {
+            width: 200px;
+        }
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <!-- Основная информация о мероприятии -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body text-center">
+                    <h1 class="card-title">{{ event.title }}</h1>
+                    {% if event.image %}
+                        <a href="#" data-toggle="modal" data-target="#mainImageModal" aria-label="Увеличить изображение">
+                            <img src="{{ event.image.url }}" alt="{{ event.title }}" class="img-fluid mb-4 rounded" style="max-height: 400px;">
+                        </a>
+                    {% endif %}
+                    {% if event.description %}
+                        <p class="card-text">{{ event.description }}</p>
+                    {% endif %}
+                    <p class="text-muted">Дата публикации: {{ event.event_date }}</p>
+                </div>
+            </div>
+
+            <!-- Модальное окно для главной фотографии мероприятия -->
+            {% if event.image %}
+                <div class="modal fade" id="mainImageModal" tabindex="-1" role="dialog" aria-labelledby="mainImageModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="mainImageModalLabel">{{ event.title }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="{{ event.image.url }}" class="img-fluid rounded" alt="{{ event.title }}">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Абзацы -->
+            {% if event.paragraphs.exists %}
+                {% for paragraph in event.paragraphs.all %}
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <p>{{ paragraph.content }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Список элементов -->
+            {% if event.list_items.exists %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title text-center">{{ event.list_title }}</h4>
+                        <ul class="list-group list-group-flush">
+                            {% for item in event.list_items.all %}
+                                <li class="list-group-item text-center">
+                                    {% if item.description or item.image %}
+                                        <a href="#" data-toggle="modal" data-target="#itemModal{{ item.id }}">{{ item.title }}</a>
+
+                                        <!-- Модальное окно для элемента списка -->
+                                        <div class="modal fade" id="itemModal{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="itemModalLabel{{ item.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="itemModalLabel{{ item.id }}">{{ item.title }}</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        {% if item.description %}
+                                                            <p>{{ item.description }}</p>
+                                                        {% endif %}
+                                                        {% if item.image %}
+                                                            <img src="{{ item.image.url }}" class="img-fluid mt-3 rounded" alt="{{ item.title }}">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        {{ item.title }}
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+<!-- Галерея -->
+{% if event.photos.exists %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title text-center">Галерея</h4>
+            <div class="d-flex overflow-auto flex-wrap">
+                {% for photo in event.photos.all %}
+                    <div class="gallery-item">
+                        <div class="card">
+                            <a href="#" class="open-photo-modal" data-id="{{ photo.id }}" data-description="{{ photo.description }}" data-src="{{ photo.image.url }}" aria-label="Увеличить изображение">
+                                <img src="{{ photo.image.url }}" class="card-img-top img-thumbnail rounded img-fluid" style="max-height: 200px; width: auto;" alt="{{ photo.description }}">
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Общее модальное окно для фото -->
+    <div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="photoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content" style="padding: 0;"> <!-- Убираем отступы -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="photoModalLabel"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center" style="padding: 0;"> <!-- Убираем пустое пространство -->
+                    <div class="image-container" style="position: relative;">
+                        <img id="modalImage" class="img-fluid rounded" style="max-height: 80vh; width: auto;" alt="">
+                        <div class="image-counter" id="imageCounter"></div>
+                        <div class="arrow left-arrow" onclick="prevPhoto()" style="display: none;">&lt;</div>
+                        <div class="arrow right-arrow" onclick="nextPhoto()" style="display: none;">&gt;</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="justify-content: flex-end; padding: 10px 15px;"> <!-- Уменьшаем отступы в подвале -->
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    const photos = [];
+    let currentIndex = 0;
+
+    // Получаем все элементы с классом 'open-photo-modal'
+    const modalLinks = document.querySelectorAll('.open-photo-modal');
+    modalLinks.forEach((link, index) => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const imageSrc = link.getAttribute('data-src');
+            const description = link.getAttribute('data-description');
+            currentIndex = index; // Устанавливаем текущий индекс
+
+            // Заполняем модальное окно
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('photoModalLabel').innerText = description;
+            updateCounter();
+            updateArrows(); // Проверяем необходимость стрелок
+
+            // Показываем модальное окно
+            $('#photoModal').modal('show');
+        });
+
+        // Сохраняем данные фото в массив
+        photos.push({
+            src: link.getAttribute('data-src'),
+            description: link.getAttribute('data-description')
+        });
+    });
+
+    // Прокрутка мышкой только при наведении на изображение
+    const imageContainer = document.querySelector('.image-container');
+    imageContainer.addEventListener('mouseenter', function() {
+        photoModal.addEventListener('wheel', handleWheel);
+    });
+
+    imageContainer.addEventListener('mouseleave', function() {
+        photoModal.removeEventListener('wheel', handleWheel);
+    });
+
+    function handleWheel(event) {
+        if (event.deltaY > 0) {
+            nextPhoto();
+        } else if (event.deltaY < 0) {
+            prevPhoto();
+        }
+    }
+
+    let touchStartX = 0;
+    photoModal.addEventListener('touchstart', function(event) {
+        touchStartX = event.changedTouches[0].screenX;
+    });
+
+    photoModal.addEventListener('touchend', function(event) {
+        const touchEndX = event.changedTouches[0].screenX;
+        if (touchEndX < touchStartX) {
+            nextPhoto();
+        } else if (touchEndX > touchStartX) {
+            prevPhoto();
+        }
+    });
+
+    function nextPhoto() {
+        if (currentIndex < photos.length - 1) {
+            currentIndex++;
+            updateModal();
+        }
+    }
+
+    function prevPhoto() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateModal();
+        }
+    }
+
+    function updateModal() {
+        const photo = photos[currentIndex];
+        modalImage.src = photo.src;
+        document.getElementById('photoModalLabel').innerText = photo.description;
+        updateCounter();
+        updateArrows(); // Обновляем состояние стрелок
+    }
+
+    function updateCounter() {
+        const totalPhotos = photos.length;
+        document.getElementById('imageCounter').innerText = `Изображение ${currentIndex + 1} из ${totalPhotos}`;
+    }
+
+    function updateArrows() {
+        // Отображаем или скрываем стрелки в зависимости от текущего индекса
+        document.querySelector('.left-arrow').style.display = currentIndex > 0 ? 'block' : 'none';
+        document.querySelector('.right-arrow').style.display = currentIndex < photos.length - 1 ? 'block' : 'none';
+    }
+</script>
+
+<style>
+    /* Стили для улучшения внешнего вида галереи */
+    .gallery-item {
+        margin: 5px; /* Уменьшаем отступ между изображениями */
+        flex: 0 0 auto; /* Чтобы элементы не сжимались */
+    }
+
+    .gallery-item .card {
+        border: none; /* Убираем рамку карты */
+    }
+
+    .modal-content {
+        border-radius: 10px; /* Скругленные углы */
+        padding: 0; /* Убираем отступы для компакности */
+    }
+
+    .modal-header {
+        border-bottom: none; /* Убираем нижнюю границу модального заголовка */
+    }
+
+    .modal-footer {
+        border-top: none; /* Убираем верхнюю границу модального подвала */
+        justify-content: flex-end; /* Выравнивание кнопок */
+    }
+
+    .image-counter {
+        font-size: 1.2em; /* Размер текста для индикатора */
+        color: #555; /* Цвет текста индикатора */
+        position: absolute; /* Абсолютное позиционирование для центрального размещения */
+        bottom: 10px; /* Отступ от низа */
+        left: 50%; /* Центрируем по горизонтали */
+        transform: translateX(-50%); /* Центрируем */
+        background-color: rgba(255, 255, 255, 0.8); /* Фон для читаемости текста */
+        padding: 5px 10px; /* Отступы для текста */
+        border-radius: 5px; /* Скругление углов */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Тень для глубины */
+    }
+
+    .arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 2rem; /* Размер стрелок */
+        color: rgba(255, 255, 255, 0.8); /* Цвет стрелок */
+        background-color: rgba(0, 0, 0, 0.5); /* Фон для стрелок */
+        padding: 10px; /* Отступы для стрелок */
+        border-radius: 50%; /* Скругление */
+        cursor: pointer; /* Указатель при наведении */
+        user-select: none; /* Запрет на выделение текста */
+        transition: background-color 0.3s; /* Плавный переход цвета фона */
+    }
+
+    .arrow:hover {
+        background-color: rgba(0, 0, 0, 0.8); /* Темнее при наведении */
+    }
+
+    .left-arrow {
+        left: 10px; /* Положение стрелки влево */
+    }
+
+    .right-arrow {
+        right: 10px; /* Положение стрелки вправо */
+    }
+
+    /* Адаптивные стили */
+    @media (max-width: 576px) {
+        #modalImage {
+            max-height: 60vh; /* Уменьшаем высоту изображения для маленьких экранов */
+        }
+
+        .arrow {
+            font-size: 1.5rem; /* Уменьшаем размер стрелок на мобильных */
+            padding: 5px; /* Уменьшаем отступы */
+        }
+
+        .image-counter {
+            font-size: 1em; /* Уменьшаем размер текста индикатора */
+        }
+    }
+</style>
+
+            <!-- Видеоблок -->
+            {% if event.videos.exists %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title text-center">Видео</h4>
+                        <div class="d-flex overflow-auto">
+                            {% for video in event.videos.all %}
+                                <div class="gallery-item mx-2">
+                                    <div class="video-container">
+                                        <video controls preload="metadata">
+                                            <source src="{{ video.video.url }}" type="video/mp4">
+                                            Ваш браузер не поддерживает воспроизведение видео.
+                                        </video>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Комментарии -->
+            {% if comments %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title text-center">Комментарии</h4>
+                        <div class="list-group">
+                            {% for comment in comments %}
+                                <div class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ comment.author }}</h5>
+                                        <small class="text-muted">{{ comment.created_date }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ comment.text }}</p>
+                                    {% if comment.image %}
+                                        <img src="{{ comment.image.url }}" class="img-fluid rounded mt-3" style="max-width: 150px;" alt="Фото комментария от {{ comment.author }}" data-toggle="modal" data-target="#commentModal{{ comment.id }}">
+                                    {% endif %}
+                                </div>
+
+                                <!-- Модальное окно для фотографии комментария -->
+                                <div class="modal fade" id="commentModal{{ comment.id }}" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel{{ comment.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="commentModalLabel{{ comment.id }}">Фото комментария от {{ comment.author }}</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body text-center">
+                                                {% if comment.image %}
+                                                    <img src="{{ comment.image.url }}" class="img-fluid rounded" alt="Фото комментария от {{ comment.author }}">
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Сообщение об успешной отправке комментария -->
+            {% if messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+
+            <!-- Сообщение об ошибке при отправке комментария -->
+            {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {% for field, errors in form.errors.items %}
+                        <strong>{{ field|capfirst }}</strong>: {{ errors|join:', ' }}
+                    {% endfor %}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+
+            <!-- Оставить комментарий -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Оставить комментарий</h5>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="id_author">Ваше имя:</label>
+                            <input type="text" class="form-control" id="id_author" name="author" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_text">Текст комментария:</label>
+                            <textarea class="form-control" id="id_text" name="text" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_image">Загрузить изображение (необязательно):</label>
+                            <input type="file" class="form-control-file" id="id_image" name="image" accept="image/*">
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Отправить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Назад к мероприятиям -->
+            <div class="text-center">
+                <a href="{% url 'index' %}" class="btn btn-secondary mt-3">На главную</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Сброс формы модального окна при закрытии
+    $('.modal').on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+    });
+</script>
+{% endblock %}

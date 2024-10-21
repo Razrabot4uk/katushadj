@@ -1,0 +1,16 @@
+{% extends 'news/base.html' %}
+
+{% block title %}Успешная отправка{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="alert alert-success" role="alert">
+                Ваше сообщение успешно отправлено! Мы свяжемся с вами в ближайшее время.
+            </div>
+            <p class="text-center"><a href="{% url 'index' %}" class="btn btn-secondary">Вернуться на главную</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

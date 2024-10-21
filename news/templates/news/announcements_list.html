@@ -1,0 +1,92 @@
+{% extends 'news/base.html' %}
+{% block title %}Объявления{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h1 class="text-center">ОБЪЯВЛЕНИЯ</h1>
+            {% for announcement in announcements %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h2 class="card-title text-center">{{ announcement.title }}</h2>
+                        <p class="card-text text-center">{{ announcement.description }}</p>
+                        <p class="text-muted text-center">Дата публикации: {{ announcement.created_at }}</p>
+                        <div class="d-flex overflow-auto">
+                            {% for image in announcement.images.all %}
+                                <div class="gallery-item">
+                                    <img src="{{ image.image.url }}" class="img-fluid rounded" alt="{{ announcement.title }}" style="cursor: pointer;" data-toggle="modal" data-target="#imageModal{{ image.id }}">
+                                </div>
+
+                                <!-- Модальное окно для изображения -->
+                                <div class="modal fade" id="imageModal{{ image.id }}" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel{{ image.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="imageModalLabel{{ image.id }}">{{ announcement.title }}</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body text-center">
+                                                <img src="{{ image.image.url }}" class="img-fluid rounded" alt="{{ announcement.title }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<style>
+    .overflow-auto {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .overflow-auto::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    .overflow-auto::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .overflow-auto::-webkit-scrollbar-thumb {
+        background: #888;
+    }
+
+    .overflow-auto::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .gallery-item {
+        flex: 0 0 auto;
+        margin-right: 10px;
+    }
+
+    @media (max-width: 767.98px) {
+        .gallery-item {
+            width: 150px;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .gallery-item {
+            width: 180px;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .gallery-item {
+            width: 200px;
+        }
+    }
+</style>
+{% endblock %}
